@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: spring-ai-demo
+  profiles:
+    active: dev
+server:
+  address: 0.0.0.0
+  port: 8810
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
