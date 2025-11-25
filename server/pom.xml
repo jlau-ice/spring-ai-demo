@@ -21,6 +21,7 @@
         <module>hello-serve</module>
         <module>ollama</module>
         <module>chat-client</module>
+        <module>strteaming</module>
     </modules>
 
     <properties>
