@@ -1,5 +1,5 @@
 server:
-  port: 8003
+  port: 8006
   servlet:
     encoding:
       enabled: true
@@ -7,7 +7,7 @@ server:
       force: true
 spring:
   application:
-    name: chat-client
+    name: prompt-template
   ai:
     dashscope:
       api-key: ${DASH_SCOPE_API_KEY}
