@@ -25,6 +25,7 @@
         <module>prompt</module>
         <module>prompt-template</module>
         <module>structure-output</module>
+        <module>chat-memory</module>
     </modules>
 
     <properties>
