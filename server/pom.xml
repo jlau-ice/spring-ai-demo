@@ -28,6 +28,8 @@
         <module>chat-memory</module>
         <module>text2images</module>
         <module>text2voice</module>
+        <module>vector</module>
+        <module>rag</module>
     </modules>
 
     <properties>
