@@ -19,24 +19,24 @@ public class ChatHelloController {
     private ChatModel chatModel;
 
     /**
+     * <a href="http://127.0.0.1:8001/cha/block">测试</a>
      * 通用调用
-     *
-     * @param msg 询问信息
+     * @param question 询问信息
      * @return String
      */
     @GetMapping(value = "/block")
-    public String doChat(@RequestParam(name = "msg", defaultValue = "你是谁") String msg) {
-        return chatModel.call(msg);
+    public String doChat(@RequestParam(name = "question", defaultValue = "你是谁") String question) {
+        return chatModel.call(question);
     }
 
     /**
+     * <a href="http://127.0.0.1:8001/cha/stream">测试</a>
      * 流式返回调用
-     *
-     * @param msg 询问信息
+     * @param question 询问信息
      * @return Flux<String>
      */
     @GetMapping(value = "/stream")
-    public Flux<String> stream(@RequestParam(name = "msg", defaultValue = "你是谁") String msg) {
-        return chatModel.stream(msg);
+    public Flux<String> stream(@RequestParam(name = "question", defaultValue = "你是谁") String question) {
+        return chatModel.stream(question);
     }
 }

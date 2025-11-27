@@ -36,11 +36,21 @@ public class StreamController {
     @Resource(name = "qwenChatClient")
     private ChatClient qwenChatClient;
 
+    /**
+     * <a href="http://127.0.0.1:8004/stream/client/deepseek?msg=%22%E4%BD%A0%E6%98%AF%E8%B0%81%22">测试</a>
+     * @param question question
+     * @return Flux<String>
+     */
     @GetMapping(value = "/client/deepseek")
     public Flux<String> chatClientDeepSeekFlux(@RequestParam(name = "question", defaultValue = "你是谁") String question) {
         return deepseekChatClient.prompt(question).stream().content();
     }
 
+    /**
+     * <a href="http://127.0.0.1:8004/stream/client/qwen?msg=%22%E4%BD%A0%E6%98%AF%E8%B0%81%22">测试</a>
+     * @param question question
+     * @return Flux<String>
+     */
     @GetMapping(value = "/client/qwen")
     public Flux<String> chatClientQwenFlux(@RequestParam(name = "question", defaultValue = "你是谁") String question) {
         return qwenChatClient.prompt(question).stream().content();

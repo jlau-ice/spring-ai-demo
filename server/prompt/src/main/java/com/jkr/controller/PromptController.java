@@ -33,6 +33,7 @@ public class PromptController {
 
 
     /**
+     * <a href="http://127.0.0.1:8005/prompt/law?question=%22%E5%86%99%E4%B8%AA%E6%95%85%E4%BA%8B%22">测试</a>
      * @param question question
      * @return Flux<String>
      */
@@ -47,6 +48,7 @@ public class PromptController {
     }
 
     /**
+     * <a href="http://127.0.0.1:8005/prompt/story?question=%22%E5%86%99%E4%B8%AA%E6%95%85%E4%BA%8B%22">测试</a>
      * @param question question
      * @return Flux<ChatResponse>
      */
@@ -61,6 +63,7 @@ public class PromptController {
     }
 
     /**
+     * <a href="http://127.0.0.1:8005/prompt/story/html?question=%22%E5%86%99%E4%B8%AA%E6%95%85%E4%BA%8B%22">测试</a>
      * @param question question
      * @return Flux<String>
      */
@@ -79,6 +82,7 @@ public class PromptController {
     }
 
     /**
+     * <a href="http://127.0.0.1:8005/prompt/call?question=%22%E5%86%99%E4%B8%AA%E6%95%85%E4%BA%8B%22">测试</a>
      * @param question question
      * @return String
      */
@@ -96,11 +100,12 @@ public class PromptController {
 
 
     /**
+     * <a href="http://127.0.0.1:8005/prompt/city?question=%22%E5%86%99%E4%B8%AA%E6%95%85%E4%BA%8B%22">测试</a>
      * @param city city
      * @return String
      */
     @GetMapping("/city")
-    public String city(@RequestParam(name = "question", defaultValue = "你是谁") String city) {
+    public String city(@RequestParam(name = "city", defaultValue = "上海") String city) {
         String answer = Objects.requireNonNull(deepseekChatClient.prompt()
                         .user(city + "未来3天天气情况如何?")
                         .call()

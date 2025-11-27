@@ -24,21 +24,25 @@ public class ChatClientController {
     //}
 
     /**
-     * @param msg question
+     * <a href="http://127.0.0.1:8003/client/client?question=%22%E4%BD%A0%E6%98%AF%E8%B0%81%22">测试</a>
+     *
+     * @param question question
      * @return String
      */
     @GetMapping("/client")
-    public String chatClient(@RequestParam(name = "msg", defaultValue = "2加9等于几") String msg) {
-        return dashScopeChatClient.prompt().user(msg).call().content();
+    public String chatClient(@RequestParam(name = "question", defaultValue = "2加9等于几") String question) {
+        return dashScopeChatClient.prompt().user(question).call().content();
     }
 
     /**
-     * @param msg question
+     * <a href="http://127.0.0.1:8003/client/model?question=%22%E4%BD%A0%E6%98%AF%E8%B0%81%22">测试</a>
+     *
+     * @param question question
      * @return String
      */
     @GetMapping("/model")
-    public String chatModel(@RequestParam(name = "msg", defaultValue = "你是谁") String msg) {
-        return dashScopeChatModel.call(msg);
+    public String chatModel(@RequestParam(name = "question", defaultValue = "你是谁") String question) {
+        return dashScopeChatModel.call(question);
     }
 }
 

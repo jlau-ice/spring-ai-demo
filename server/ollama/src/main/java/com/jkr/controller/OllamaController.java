@@ -23,21 +23,25 @@ public class OllamaController {
     private ChatModel chatModel;
 
     /**
-     * @param msg 询问信息
+     * <a href="http://127.0.0.1:8002/ollama/block">测试</a>
+     *
+     * @param question 询问信息
      * @return String
      */
     @GetMapping("/block")
-    public String chat(@RequestParam(name = "msg") String msg) {
-        return chatModel.call(msg);
+    public String chat(@RequestParam(name = "question") String question) {
+        return chatModel.call(question);
     }
 
     /**
-     * @param msg 询问信息
+     * <a href="http://127.0.0.1:8002/ollama/block">测试</a>
+     *
+     * @param question 询问信息
      * @return Flux<String>
      */
     @GetMapping("/stream")
-    public Flux<String> stream(@RequestParam(name = "msg", defaultValue = "你是谁") String msg) {
-        return chatModel.stream(msg);
+    public Flux<String> stream(@RequestParam(name = "question", defaultValue = "你是谁") String question) {
+        return chatModel.stream(question);
     }
 }
 
