@@ -24,6 +24,7 @@
         <module>streaming</module>
         <module>prompt</module>
         <module>prompt-template</module>
+        <module>structure-output</module>
     </modules>
 
     <properties>
