@@ -1,5 +1,6 @@
 package com.jkr.controller;
 
+import com.jkr.records.Student;
 import com.jkr.records.StudentRecord;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
@@ -19,6 +20,7 @@ public class StructureOutputController {
 
     /**
      * <a href="http://localhost:8007/struct/chat?name=%E6%9D%8E%E5%9B%9B&email=ice@jlau.com">...</a>
+     * 返回记录类
      *
      * @param name  姓名
      * @param email 邮箱
@@ -44,6 +46,7 @@ public class StructureOutputController {
 
     /**
      * <a href="http://localhost:8007/struct/chat2?name=%E7%8E%8B%E4%B8%80%E7%8B%97&email=ice@jlau.com">测试</a>
+     * 返回记录类lambda 写法
      *
      * @param name  姓名
      * @param email 邮箱
@@ -63,6 +66,30 @@ public class StructureOutputController {
                         .param("email", email))
                 .call()
                 .entity(StudentRecord.class);
+    }
+
+    /**
+     * <a href="http://localhost:8007/struct/chat3?name=%E7%8E%8B%E4%B8%80%E7%8B%97&email=ice@jlau.com">测试</a>
+     * 返回普通类
+     *
+     * @param name  姓名
+     * @param email 邮箱
+     * @return Student
+     */
+    @GetMapping("/chat3")
+    public Student chat3(@RequestParam(name = "name", defaultValue = "王一狗") String name,
+                         @RequestParam(name = "email", defaultValue = "ice@jlau.com") String email) {
+
+        String stringTemplate = """
+                学号1002，我叫{name},大学专业软件工程,邮箱{email}
+                """;
+
+        return qwenChatClient.prompt()
+                .user(promptUserSpec -> promptUserSpec.text(stringTemplate)
+                        .param("name", name)
+                        .param("email", email))
+                .call()
+                .entity(Student.class);
     }
 
 }
