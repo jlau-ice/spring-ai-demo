@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/t2i")
 public class Text2ImageController {
 
-    public static final String IMAGE_MODEL = "wanx2.0-t2i-turbo";
+    public static final String IMAGE_MODEL = "wan2.2-t2i-plus";
 
     @Resource
     private ImageModel imageModel;
