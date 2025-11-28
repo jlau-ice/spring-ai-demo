@@ -18,8 +18,13 @@ public class Text2ImageController {
     @Resource
     private ImageModel imageModel;
 
+    /**
+     * <a href="http://127.0.0.1:8001/t2i/image">测试</a>
+     * @param prompt prompt
+     * @return url
+     */
     @GetMapping(value = "/image")
-    public String image(@RequestParam(name = "prompt", defaultValue = "刺猬") String prompt) {
+    public String image(@RequestParam(name = "prompt", defaultValue = "戴眼镜的女生") String prompt) {
         return imageModel.call(
                         new ImagePrompt(prompt, DashScopeImageOptions.builder().withModel(IMAGE_MODEL).build())
                 )
