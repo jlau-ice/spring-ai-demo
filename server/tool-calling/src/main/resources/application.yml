@@ -1,5 +1,5 @@
 server:
-  port: 8012
+  port: 80013
   servlet:
     encoding:
       enabled: true
@@ -7,7 +7,7 @@ server:
       force: true
 spring:
   application:
-    name: rag
+    name: tool-calling
   data:
     redis:
       host: localhost
@@ -23,6 +23,12 @@ spring:
       chat:
         options:
           model: "qwen-plus-2025-09-11"
+    vectorstore:
+      redis:
+        index-name: "custom-index"
+        prefix: "custom-prefix:"
+        initialize-schema: true
+
 #    ollama:
 #      base-url: "http://192.168.187.166:11434"
 #      chat:

@@ -1,5 +1,5 @@
 server:
-  port: 8008
+  port: 8011
   servlet:
     encoding:
       enabled: true
@@ -7,7 +7,7 @@ server:
       force: true
 spring:
   application:
-    name: chat-memory
+    name: vector
   data:
     redis:
       host: localhost

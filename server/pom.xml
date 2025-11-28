@@ -30,6 +30,9 @@
         <module>text2voice</module>
         <module>vector</module>
         <module>rag</module>
+        <module>tool-calling</module>
+        <module>mcp-server</module>
+        <module>mcp-client</module>
     </modules>
 
     <properties>
