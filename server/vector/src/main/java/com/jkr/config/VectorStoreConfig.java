@@ -6,11 +6,12 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import redis.clients.jedis.JedisPooled;
+
+import static org.springframework.ai.vectorstore.redis.RedisVectorStore.Algorithm.HSNW;
 
 @Configuration
 public class VectorStoreConfig {
@@ -25,7 +26,10 @@ public class VectorStoreConfig {
     @Bean("redisVectorStore")
     public VectorStore redisVectorStore() {
         return RedisVectorStore.builder(jedisClient, ollamaEmbeddingModel)
-                .indexName("my-redis-index")
+                .indexName("custom-index")
+                .prefix("custom-prefix:")
+                .initializeSchema(true)
+                .vectorAlgorithm(HSNW)
                 .build();
     }
 

@@ -14,9 +14,14 @@ public class RedisConfig {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
+    @Value("${spring.data.redis.database:0}")
+    private int redisDatabase;
+
     @Bean
     public JedisPooled jedisPooled() {
-        return new JedisPooled(redisHost, redisPort);
+        String url = String.format("redis://%s:%d/%d",
+                redisHost, redisPort, redisDatabase);
+        return new JedisPooled(url);
     }
 }
 
