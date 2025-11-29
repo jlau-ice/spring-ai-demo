@@ -25,7 +25,8 @@ public class VectorStoreConfig {
     @Bean("redisVectorStore")
     public VectorStore redisVectorStore() {
         return RedisVectorStore.builder(jedisClient, ollamaEmbeddingModel)
-                .indexName("my-redis-index")
+                .indexName("custom-index")
+                .prefix("custom-prefix:")
                 .build();
     }
 

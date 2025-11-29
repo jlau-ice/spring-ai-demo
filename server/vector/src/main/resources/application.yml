@@ -19,7 +19,7 @@ spring:
     redis:
       host: localhost
       port: 6380
-      database: 2
+      database: 0
       connect-timeout: 3
       timeout: 3
   ai:

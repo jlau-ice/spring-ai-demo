@@ -9,6 +9,7 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.ollama.OllamaEmbeddingModel;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,15 +82,23 @@ public class VectorController {
                 new Document("i love java")
         );
         redisVectorStore.add(documents);
-    }
-
-    @GetMapping("/add2")
-    public void add2() {
-        List<Document> documents = List.of(
-                new Document("i study LLM"),
-                new Document("i love java")
-        );
         pgVectorStore.add(documents);
     }
 
+
+    /**
+     * 相似度检索
+     * @param text 检索的文本
+     * @return List<Document>
+     */
+    @GetMapping("/get")
+    public List<Document> getAll(@RequestParam(name = "text") String text) {
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query(text)
+                .topK(2)
+                .build();
+        //return redisVectorStore.similaritySearch(searchRequest);
+        return pgVectorStore.similaritySearch(searchRequest);
+
+    }
 }
