@@ -31,6 +31,12 @@ public class VectorStoreConfig {
 
     @Bean("pgVectorStore")
     public VectorStore pgVectorStore(JdbcTemplate jdbcTemplate) {
-        return PgVectorStore.builder(jdbcTemplate, ollamaEmbeddingModel).build();
+        return PgVectorStore.builder(jdbcTemplate, ollamaEmbeddingModel)
+                // 如果不指定默认是public.vector_store
+                .schemaName("embedding_vector")
+                .vectorTableName("vector_store")
+                .dimensions(1024)
+                .maxDocumentBatchSize(1000)
+                .build();
     }
 }
