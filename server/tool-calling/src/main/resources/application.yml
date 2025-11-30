@@ -1,5 +1,5 @@
 server:
-  port: 80013
+  port: 8013
   servlet:
     encoding:
       enabled: true
@@ -23,13 +23,3 @@ spring:
       chat:
         options:
           model: "qwen-plus-2025-09-11"
-    vectorstore:
-      redis:
-        index-name: "custom-index"
-        prefix: "custom-prefix:"
-        initialize-schema: true
-
-#    ollama:
-#      base-url: "http://192.168.187.166:11434"
-#      chat:
-#        model: "qwen3:8b"
