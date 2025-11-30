@@ -33,6 +33,7 @@
         <module>tool-calling</module>
         <module>mcp-server</module>
         <module>mcp-client</module>
+        <module>mcp-call</module>
     </modules>
 
     <properties>

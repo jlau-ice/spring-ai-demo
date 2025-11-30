@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "/home/ice/.nvm/versions/node/v22.21.1/bin/npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:postgres@127.0.0.1/postgres"
+      ]
+    }
+  }
+}
