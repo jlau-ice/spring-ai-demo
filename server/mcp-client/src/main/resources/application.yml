@@ -29,7 +29,8 @@ spring:
         name: mcp-client
         version: 1.0.0
         request-timeout: 60s
-        enabled: true
+        toolcallback:
+          enabled: true
         sse:
           connections:
             mcp-server1:

@@ -20,7 +20,7 @@ public class McpCallController {
 
     /**
      * 添加了MCP调用能力
-     *
+     * <a href="http://127.0.0.1:8016/mcp/call?question=%E5%BD%93%E5%89%8D%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%20public%20%E6%A8%A1%E5%BC%8F%E4%B8%8B%E6%9C%89%E5%A4%9A%E5%B0%91%E6%95%B0%E6%8D%AE%E8%A1%A8%EF%BC%8C%E5%9B%9B%E5%BC%A0%E8%A1%A8%E5%88%86%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B8%AE%E6%88%91%E5%88%86%E5%88%AB%E7%BB%9F%E8%AE%A1%E4%BB%96%E4%BB%AC%E7%9A%84%E6%95%B0%E6%8D%AE%E6%95%B0%E9%87%8F">测试</a>
      * @param question 问题
      * @return 回复
      */

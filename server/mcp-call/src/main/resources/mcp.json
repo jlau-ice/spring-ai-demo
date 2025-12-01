@@ -5,8 +5,11 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-postgres",
-        "postgresql://postgres:postgres@127.0.0.1/postgres"
-      ]
+        "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+      ],
+      "env": {
+        "PATH": "/home/ice/.nvm/versions/node/v22.21.1/bin:/usr/local/bin:/usr/bin:/bin"
+      }
     }
   }
 }
