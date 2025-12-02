@@ -19,6 +19,7 @@ public class SaaLLMConfig {
 
     private final String DEEPSEEK_MODEL = "deepseek-v3.1";
     private final String QWEN_MODEL = "qwen-plus-2025-09-11";
+    private final String OLLAMA_MODEL = "qwen3:8b";
 
     @Bean(name = "deepseek")
     public ChatModel deepSeek() {
@@ -65,6 +66,21 @@ public class SaaLLMConfig {
         return ChatClient
                 .builder(qwen)
                 .defaultOptions(ChatOptions.builder().model(QWEN_MODEL).build())
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(windowChatMemory).build())
+                .build();
+    }
+
+    @Bean(name = "ollamaChatClient")
+    public ChatClient ollamaChatClient(@Qualifier("ollamaChatModel") ChatModel ollama,
+                                       JdbcChatMemoryRepository jdbcChatMemoryRepository) {
+        MessageWindowChatMemory windowChatMemory = MessageWindowChatMemory
+                .builder()
+                .chatMemoryRepository(jdbcChatMemoryRepository)
+                .maxMessages(100)
+                .build();
+        return ChatClient
+                .builder(ollama)
+                .defaultOptions(ChatOptions.builder().model(OLLAMA_MODEL).build())
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(windowChatMemory).build())
                 .build();
     }

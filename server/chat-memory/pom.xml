@@ -26,12 +26,14 @@
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
         </dependency>
+        <!-- redis 记忆存储所需依赖 经过spring ai alibaba 又封装了一层 -->
         <!--spring-ai-alibaba memory-redis-->
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-memory-redis</artifactId>
         </dependency>
-        <!--spring-ai memory-jdbc-->
+        <!-- postgresql 存储所需依赖 没有封装的 spring ai 原生支持的 -->
+        <!-- spring-ai memory-jdbc -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-chat-memory-repository-jdbc</artifactId>
@@ -40,6 +42,12 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.5.0</version>
+        </dependency>
+        <!-- ollama -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <!--jedis-->
         <dependency>

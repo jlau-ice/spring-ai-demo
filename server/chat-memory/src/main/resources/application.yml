@@ -33,7 +33,7 @@ spring:
         repository:
           jdbc:
             initialize-schema: always
-#    ollama:
-#      base-url: "http://192.168.187.166:11434"
-#      chat:
-#        model: "qwen3:8b"
+    ollama:
+      base-url: "http://192.168.187.166:11434"
+      chat:
+        model: "qwen3:8b"

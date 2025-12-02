@@ -20,6 +20,7 @@ public class OllamaController {
 
     //方式2
     @Resource
+    @Qualifier("ollamaChatModel")
     private ChatModel chatModel;
 
     public final ChatClient chatClient;

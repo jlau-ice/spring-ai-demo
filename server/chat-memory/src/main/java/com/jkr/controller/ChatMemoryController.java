@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 import static org.springframework.ai.chat.memory.ChatMemory.CONVERSATION_ID;
-import static org.springframework.ai.chat.memory.ChatMemory.DEFAULT_CONVERSATION_ID;
 
 @RestController
 @RequestMapping("/memory")
@@ -20,6 +19,9 @@ public class ChatMemoryController {
 
     @Resource(name = "qwenChatClient")
     private ChatClient qwenChatClient;
+
+    @Resource(name = "ollamaChatClient")
+    private ChatClient ollamaChatClient;
 
     /**
      * <a href="http://localhost:8008/memory/chat?question=%221+1%E7%AD%89%E4%BA%8E%E5%87%A0%22&userId=1&conversationId=1">测试</a>
@@ -32,8 +34,8 @@ public class ChatMemoryController {
      */
     @GetMapping("/chat")
     public Flux<String> redisMemory(@RequestParam(name = "question", defaultValue = "1+1等于几") String question,
-                             String userId,
-                             String conversationId) {
+                                    String userId,
+                                    String conversationId) {
         return deepseekChatClient
                 .prompt(question)
                 .advisors(advisorSpec ->
@@ -51,13 +53,28 @@ public class ChatMemoryController {
      */
     @GetMapping("/chat2")
     public Flux<String> postgresqlMemory(@RequestParam(name = "question", defaultValue = "1+1等于几") String question,
-                              String userId,
-                              String conversationId) {
+                                         String userId,
+                                         String conversationId) {
         return qwenChatClient.prompt(question).advisors(
-                advisorSpec -> advisorSpec.param(CONVERSATION_ID, userId + "-" + conversationId))
-        .stream().content();
+                        advisorSpec -> advisorSpec.param(CONVERSATION_ID, userId + "-" + conversationId))
+                .stream().content();
     }
 
+    /**
+     * <a href="http://localhost:8008/memory/chat3?question=%221+1%E7%AD%89%E4%BA%8E%E5%87%A0%22&userId=1&conversationId=1">测试</a>
+     * postgresql 带记忆模式
+     *
+     * @param question question
+     * @return Flux<String>
+     */
+    @GetMapping("/chat3")
+    public Flux<String> ollamaMemory(@RequestParam(name = "question", defaultValue = "1+1等于几") String question,
+                                     String userId,
+                                     String conversationId) {
+        return ollamaChatClient.prompt(question).advisors(
+                        advisorSpec -> advisorSpec.param(CONVERSATION_ID, userId + "-" + conversationId))
+                .stream().content();
+    }
 }
 
 
