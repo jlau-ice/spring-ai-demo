@@ -76,10 +76,11 @@ services:
 ```
 
 
-## 基础对话
+## 一、基础问答
+这里的基础问答指的是 **无状态** 的、一次性的问答交互。
+在这种模式下，每一次用户请求都被视为一个独立的会话，模型在处理当前问题时，不会保留或记住之前任何一次交互的内容和上下文。
 
-### 依赖
-
+### 1.1 依赖
 基础对话所需依赖项目
 ```xml
     <dependencies>
@@ -120,11 +121,9 @@ services:
     </dependencies>
 ```
 
-
-### 配置api key
+### 1.2 配置api key
 获取api key ： [获取地址](https://bailian.console.aliyun.com/?apiKey=1&tab=api#/api)
 ```yml
-
 spring:
   datasource:
     url: jdbc:postgresql://127.0.0.1:5432/postgres
@@ -162,9 +161,9 @@ spring:
 ```
 
 
-### ChatModel 方式
-#### 创建ChatModel
-
+### 1.3 ChatModel 方式
+`ChatModel` 是 Spring AI 提供的最低级别、最基础的抽象接口，用于与底层大语言模型（LLM）进行交互。
+#### 1.3.1 创建ChatModel
 ```java
     @Bean
     public DashScopeApi dashScopeApi() {
@@ -173,16 +172,14 @@ spring:
                 .build();
     }
 ```
-
-#### 基础使用
-流式返回和阻塞返回 (使用可见模块 hello-server)
+#### 1.3.2 基础使用
+使用 `ChatModel` 实现消息的流式返回和阻塞返回
 ```java
 @RestController
 @RequestMapping("/chat")
 public class ChatHelloController {
     @Resource
     private ChatModel chatModel;
-
     @GetMapping(value = "/block")
     public String doChat(@RequestParam(name = "question", defaultValue = "你是谁") String question) {
         return chatModel.call(question);
@@ -194,12 +191,10 @@ public class ChatHelloController {
 }
 ```
 
-
-### ChatClient
-
-#### 官方解释
+### 1.4 ChatClient 使用
+`ChatClient` 是 Spring AI 应用程序中最常用的交互接口。它在底层 `ChatModel` 之上提供了易用性、集成性和扩展性，让开发者能够专注于业务逻辑，而不是底层 API 的细节。
+#### 1.4.1 官方解释
 `ChatClient` 提供了与 AI 模型通信的 Fluent API，它支持同步和反应式（Reactive）编程模型。与 `ChatModel`、`Message`、`ChatMemory` 等原子 API 相比，使用 `ChatClient` 可以将与 LLM 及其他组件交互的复杂性隐藏在背后，因为基于 LLM 的应用程序通常要多个组件协同工作（例如，提示词模板、聊天记忆、LLM Model、输出解析器、RAG 组件：嵌入模型和存储），并且通常涉及多个交互，因此协调它们会让编码变得繁琐。当然使用 `ChatModel` 等原子 API 可以为应用程序带来更多的灵活性，成本就是您需要编写大量样板代码。
-
 ChatClient 类似于应用程序开发中的服务层，它为应用程序直接提供 `AI 服务`，开发者可以使用 ChatClient Fluent API 快速完成一整套 AI 交互流程的组装。
 
 包括一些基础功能，如：
@@ -212,43 +207,47 @@ ChatClient 类似于应用程序开发中的服务层，它为应用程序直接
 - 工具/函数调用（Function Calling）
 - RAG
 
-#### 创建ChatClient
-ChatClient 不能被`@Resource`和`@Autowired`自动注入.
+#### 1.4.2 创建ChatClient
+`ChatClient` 默认情况下不会被 Spring Boot 自动配置为可直接 `@Autowired` 或 `@Resource` 注入的 `Bean`。 这是因为 `ChatClient` 需要通过其 `Builder` 模式来构建，并且必须依赖于一个或多个底层 `ChatModel` 实例。
 有两种注入方式
-1. 构造方法注入
-```java
-    private final ChatClient dashScopeChatClient;
-    public ChatClientController(ChatModel dashScopeChatModel) {
-        this.dashScopeChatClient = ChatClient.builder(dashScopeChatModel).build();
-    }
-```
-2. 自定义`Bean`
-```java
-    @Bean
-    public ChatClient chatClient(ChatModel dashscopeChatModel) {
-        return ChatClient.builder(dashscopeChatModel).build();
-    }
-```
 
+1. 自定义 `@Bean` (推荐方式)
 
-#### 基础使用
-流式返回和阻塞返回
+   这是最常用且最符合 Spring 规范的做法。通过定义一个 `@Bean` 方法，您可以清晰地指定 `ChatClient` 依赖于哪个具体的 `ChatModel`（例如，这里依赖于 `dashscopeChatModel`），并可以在构建时应用默认配置（如默认系统指令、默认工具等）。
 ```java
-    @Resource
-    private ChatClient dashScopeChatClient;
-    @GetMapping("/client")
-    public String chatClientBlock(@RequestParam(name = "question", defaultValue = "2加9等于几") String question) {
-        return dashScopeChatClient.prompt().user(question).call().content();
-    }
-    @GetMapping("/client")
-    public Flux<String> chatClientStream(@RequestParam(name = "question", defaultValue = "2加9等于几") String question) {
-        return dashScopeChatClient.prompt().user(question).stream().content();
-    }
+@Bean
+public ChatClient chatClient(ChatModel dashscopeChatModel) {
+    return ChatClient.builder(dashscopeChatModel).build();
+}
+```
+2. 构造方法注入依赖并手动构建
+
+   这种方式适用于您只想在特定组件中使用 `ChatClient`，而不希望将其暴露为全局 `Bean` 的场景。您可以在组件的构造函数中注入所需的 `ChatModel`，然后手动完成 `ChatClient` 的构建。
+```java
+private final ChatClient dashScopeChatClient;
+public ChatClientController(ChatModel dashScopeChatModel) {
+    this.dashScopeChatClient = ChatClient.builder(dashScopeChatModel).build();
+}
 ```
 
-### 使用本地模型(ollama)对话
+#### 1.4.3 基础使用
+使用 `ChatClient` 实现消息的流式返回和阻塞返回
+```java
+@Resource
+private ChatClient dashScopeChatClient;
+@GetMapping("/client")
+public String chatClientBlock(@RequestParam(name = "question", defaultValue = "2加9等于几") String question) {
+    return dashScopeChatClient.prompt().user(question).call().content();
+}
+@GetMapping("/client")
+public Flux<String> chatClientStream(@RequestParam(name = "question", defaultValue = "2加9等于几") String question) {
+    return dashScopeChatClient.prompt().user(question).stream().content();
+}
+```
 
-#### 引入依赖
+### 1.5 使用本地模型(ollama) 实现基础对话
+选择本地模型是为了在数据隐私、离线运行、长期免费和低延迟方面取得优势，特别适用于不能联网或对敏感数据有严格要求的项目。
+#### 1.5.1 引入依赖
 
 ```xml
 <!--ollama-->
@@ -259,7 +258,7 @@ ChatClient 不能被`@Resource`和`@Autowired`自动注入.
 </dependency>
 ```
 
-#### 编辑配置
+#### 1.5.2 编辑配置
 ```yml
 spring:
   application:
@@ -271,8 +270,8 @@ spring:
         model: "qwen3:8b"
 ```
 
-#### 基础使用
-ChatModel && ChatClient 流试阻塞方式调用。
+#### 1.5.3 基础使用
+`ChatModel` && `ChatClient` 流试阻塞方式调用。
 ```java
     @Resource  
     private ChatModel chatModel;  
@@ -300,7 +299,9 @@ ChatModel && ChatClient 流试阻塞方式调用。
         return chatClient.prompt().user(question).stream().content();
     }
 ```
-### 多模型共存
+### 1.6 多模型共存
+多模型共存是为了实现成本、性能和合规性的最佳平衡，允许项目根据任务需求灵活选择和切换本地、线上或不同厂商的模型。
+
 `ChatClient` 通过 `ChatModel` 创建，`ChatModel`（对于spring-ai-alibaba来说）也可通过`DashScopeChatModel` 创建不同模型的`ChatModel`，外部的依赖也可以引入相关的`ChatModel`如`ollama`。 
 这样我门就可以在一个项目中使用多个模型。下面是示例：
 ```java
@@ -351,9 +352,15 @@ public class SaaLLMConfig {
 
 
 
-## 记忆存储
-这里主要介绍 redis 和 postgres 两种方式作为记忆存储方式，其他类型的存储方式请参考 spring-ai 文档，这不需要向量库，普通的redis和postgres就可以。
-### 引入依赖
+## 二、记忆存储
+
+**记忆存储**是为了打破基础对话的**无状态限制**，使 AI Agent 能够**记住先前交互的上下文**，从而实现连贯且自然的**多轮对话**。
+
+---
+
+这里主要介绍 **redis** 和 **postgres** 两种方式作为记忆存储方式，其他类型的存储方式请参考 spring-ai 文档，这不需要向量库，普通的redis和postgres就可以。
+
+### 2.1 引入依赖
 ````xml
     <!--spring-ai-alibaba dashscope-->
     <dependency>
@@ -384,7 +391,7 @@ public class SaaLLMConfig {
     </dependency>
 ````
 
-### 添加配置
+### 2.2 添加配置
 ```yml
 spring:
   datasource:
@@ -410,11 +417,10 @@ spring:
             initialize-schema: always
 ```
 
-### 构造Bean
+### 2.3 构造Bean
 文档中主要介绍ollama + Jdbc存储方式，其他方式chat-memory模块中有示例代码。
-1. 配置 JDBC 聊天记忆仓库（PostgresMemoryConfig）
-
-    这个配置类负责创建并注册 `JdbcChatMemoryRepository` 实例，它依赖于 Spring Boot 自动配置的 `JdbcTemplate` 来与 PostgreSQL 数据库交互。
+#### 2.3.1 配置 JDBC 聊天记忆仓库（PostgresMemoryConfig）
+ 这个配置类负责创建并注册 `JdbcChatMemoryRepository` 实例，它依赖于 Spring Boot 自动配置的 `JdbcTemplate` 来与 PostgreSQL 数据库交互。
 ```java
 @Configuration
 public class PostgresMemoryConfig {
@@ -441,11 +447,11 @@ public class PostgresMemoryConfig {
     }
 }
 ```
-##### 关键点解释： 
+**关键点解释：** 
 - `@Primary`: 该注解用于解决歧义性。当应用中存在多个 `ChatMemoryRepository` 接口的实现（例如，同时存在 `JDBC` 和 `Redis` 实现）时，`@Primary`告诉 Spring，这是默认或首选的实现。
 
 
-2. 集成到 ChatClient（SaaLLMConfig）
+#### 2.3.2 集成到 ChatClient（SaaLLMConfig）
    这个配置类展示了如何将上一步定义的聊天记忆仓库连接到特定的 ChatModel（此处为 Ollama），从而为该模型提供有状态（带记忆）的会话能力。
 ```java
 @Configuration
@@ -482,15 +488,15 @@ public class SaaLLMConfig {
     }
 }
 ```
-#### 关键组件解释：
+**关键组件解释：**
 - **`MessageWindowChatMemory`**: **记忆策略**。它定义了如何管理对话历史，例如只保留最近的 N 条消息（此处为 100 条）。
 
 - **`jdbcChatMemoryRepository`**: **记忆仓库 (Repository)**。它是 `MessageWindowChatMemory` 实际存储和读取数据的地方（PostgreSQL 数据库）。
 
 - **`MessageChatMemoryAdvisor`**: **AOP 切面/建议器**。它是 Spring AI 机制的核心，负责在 ChatModel 调用前后自动执行记忆的**读取**和**写入**操作，从而将无状态的模型调用转化为有状态的对话。
 
-### 使用方式
-
+### 2.4 记忆对话交互
+为了确保多用户和多会话之间记忆的隔离性和准确性，我们需要在每次调用时，向 `ChatClient` 明确传递一个唯一的会话标识符。Spring AI 通过 `ConversationHistoryAdvisor`（在底层自动启用）和 `CONVERSATION_ID` 参数来实现这一点。
 ```java
 @RestController
 @RequestMapping("/memory")
@@ -510,7 +516,7 @@ public class ChatMemoryController {
 
 ```
 
-### 其他记忆方式说明
+### 2.5 其他记忆方式说明
 除了 JDBC 外，chat-memory 模块还支持其他几种持久化方式。
 除了 JDBC 外，`chat-memory` 模块还支持其他几种持久化方式。您可以参考项目中的示例代码来配置：
 
@@ -521,11 +527,12 @@ public class ChatMemoryController {
 
 您只需要替换 `jdbcChatMemoryRepository` 为相应的实现，并在其 Bean 上添加 `@Primary` (如果需要) 即可
 
-## 提示词
+## 三、提示词
+提示词（Prompt）是与大语言模型（LLM）交互的核心载体和指令集。它本质上是提供给模型的一段输入文本，用于引导模型执行特定的任务、遵循特定的规则，并产生期望的输出。
 
 在 Spring AI 中，与大型语言模型（LLM）的交互是通过 **`Prompt`** 对象完成的，而 `Prompt` 内部由一系列不同角色的 **消息 (Message)** 组成。掌握这些消息类型是精确控制模型行为的关键。
 
-### 消息类型
+### 3.1 消息类型
 
 | **消息类型**               | **角色 (Role)**  | **目的**                                     | **使用场景**                                                                                                                                    |
 | ---------------------- | -------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -534,10 +541,8 @@ public class ChatMemoryController {
 | **`AssistantMessage`** | Assistant (助手) | 包含模型**历史的回复**。                             | 用于在构建 `Prompt` 时，手动加入历史对话（通常由 `ChatMemory` 自动管理）。                                                                                           |
 | **`ToolMessage`**        | Tool (工具)      | 包含 LLM 请求调用的**外部工具执行后的结果或输出**。             | LLM 决定调用一个函数（例如：`get_weather(location)`）。<br>应用执行该函数得到结果（例如：`{"temperature": "25°C"}`）。<br>**`ToolMessage`** 将这个结果反馈给 LLM，让其基于此结果生成最终的用户回复。 |
 
-
-
-### 使用示例 
-下面分别是 ChatClient 和 ChatModel 的使用方式：
+### 3.2 使用示例 
+下面分别是 `ChatClient` 和 `ChatModel` 的使用方式：
 ```java
 @RestController
 @RequestMapping("/prompt")
@@ -572,7 +577,7 @@ public class PromptController {
 }
 ```
 
-### 提示词模板
+### 3.3 提示词模板
 **提示词模板**是 Spring AI 中用于创建动态、可复用提示词的核心工具。它允许开发者将固定的指令（如角色设定、格式要求）与动态的运行时参数（如用户输入、主题、字数）结合起来，从而灵活地构造出发送给 LLM 的 `Prompt` 对象。
 
 | **类名**                         | **描述**                                               | **作用**                                   |
@@ -581,8 +586,8 @@ public class PromptController {
 | **`SystemPromptTemplate`**     | 专用于构造 **`SystemMessage`** 的模板类。                      | 确保生成的 `Message` 具有系统角色的语义，用于设置模型身份或约束。   |
 | **`@Value("classpath:/...")`** | Spring Resource Loader。                              | 允许将复杂的提示词内容存储在外部文件（如 `.txt`）中，使代码更清晰。    |
 
-#### 使用示例
-##### 字符串内联模板
+#### 3.3.1 使用示例
+##### 3.3.1.1 字符串内联模板
 ```java
 public Flux<String> story() {
     // 模板定义在代码中
@@ -602,7 +607,7 @@ public Flux<String> story() {
 - **特点：** 最直接的使用方式，适用于模板内容较短的场景。
 
 - **调用方式：** 使用 `ChatClient.prompt(Prompt)` 进行流式调用 (`.stream().content()`)，简洁高效。
-##### 外部文件模板
+##### 3.3.1.2 外部文件模板
 此示例展示了如何将模板内容外置到文件 (`template.txt`) 中，并通过 Spring Resource 加载。
 ```java
 @Value("classpath:/prompt-template/template.txt")
@@ -621,7 +626,7 @@ public Flux<String> story() {
 - **特点：** 模板内容（如故事格式、字数要求）存储在外部文件，便于维护和修改，代码更整洁。
 
 - **调用方式：** 使用 `ChatModel.stream(Prompt)`，需要手动通过 `.mapNotNull(...)` 提取文本内容。
-##### 系统模板 + 用户模板
+##### 3.3.1.3 系统模板 + 用户模板
 此示例是最完整的提示词构建模式，它分离了系统指令和用户输入，分别使用对应的模板类构建消息，最后组合成一个 `Prompt`。
 ```java
 public Flux<String> story() {
@@ -640,16 +645,16 @@ public Flux<String> story() {
 }
 ```
 
-## 结构化输出
+## 四、结构化输出
 
 **结构化输出**功能允许开发者定义 Java 对象（如 `Record` 或 POJO）的结构，并让 LLM 的回复直接映射到该对象实例上。这通过将 JSON Schema 注入到提示词中实现，有效地将 LLM 的文本生成任务转化为**数据生成任务**
-### 核心机制与优势
+### 4.1 核心机制与优势
 | **机制**             | **描述**                                                                                                   | **优势**                          |
 | ------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------- |
 | **JSON Schema 注入** | Spring AI 库将目标 Java 类（例如 `StudentRecord.class`）转化为 **JSON Schema** 定义，并将其作为 `SystemMessage` 的一部分发送给 LLM。 | 强制模型输出符合该 Schema 的 JSON 字符串。    |
 | **数据绑定**           | LLM 返回 JSON 字符串后，Spring AI 自动将该 JSON 字符串反序列化（Deserialization）绑定到您指定的 Java 类实例上。                          | 无需手动编写 JSON 解析代码，确保数据的类型安全和准确性。 |
 | **`Record` 类支持**   | 推荐使用 Java 14+ 的 `Record` 类型，它们简洁、不可变且自动提供了构造函数和访问器。                                                      | 简化数据模型的创建。                      |
-### 使用示例：StructureOutputController
+### 4.2 使用示例
 **前提：数据模型定义 (StudentRecord)**
 
 假设您有一个用于接收结构化数据的 Java Record 类（或其他 POJO）：
@@ -691,15 +696,17 @@ public class StructureOutputController {
     }
 }
 ```
-### 注意事项
+### 4.3 注意事项
 - **模型能力依赖**：结构化输出的成功率高度依赖于底层 LLM（如 Qwen-Plus/GPT-4 等）对 **JSON Schema** 和 **函数调用（Function Calling）** 的支持及理解能力。对于较弱的模型，结果可能不准确或返回非 JSON 文本。
 - **提示词质量**：用户提示词（`stringTemplate`）应包含足够且明确的信息，以便模型能够准确地将信息提取并映射到 `StudentRecord` 的字段上。
 
-## 文本向量化极其存储
+## 五、文本向量化 存储 检索
+文本向量化（也称为文本嵌入，Embedding）是将人类可读的文本信息转换为计算机可以理解和处理的数值形式（即高维向量）的过程。
+文本向量化将文本的含义（语义）映射到向量空间中的位置。在向量空间中，语义相似的词语或句子（例如“狗”和“宠物”）会彼此靠近，而语义不相关的会彼此远离。
+传统的全文检索（如关键词匹配）无法理解“意思”。通过向量化，我们可以计算用户问题向量与知识库中文本向量的距离（相似度），从而实现基于含义的检索，这是 RAG 机制的基石。
+将文本转换为向量后，计算机可以使用成熟的线性代数和距离算法（如余弦相似度）进行快速、大规模的量化分析和搜索，极大地提高了处理效率。
 
-向量数据库是 RAG（Retrieval-Augmented Generation，检索增强生成）架构的核心组件。它用于存储、索引和快速检索嵌入后的数据块，使 LLM 能够访问外部知识。
-
-### 前提
+### 5.1 前提条件
 1. 准备向量数据库实例：
 - 你需要准备至少一种向量数据库
    您需要准备一个正在运行的向量数据库实例，例如：
@@ -715,7 +722,7 @@ public class StructureOutputController {
 
 - **配置要求：** 确保您的 `application.properties`/`application.yml` 中已配置相应的 API Key 或 Base URL。
 
-### 依赖
+### 5.2 相关依赖
 ```xml
 <!-- 添加 Redis (RedisStack) 向量数据库依赖 -->
 <dependency>
@@ -735,7 +742,7 @@ public class StructureOutputController {
 </dependency>
 ```
 
-### 配置文件
+### 5.3 相关配置
 ```yaml
 spring:
   application:
@@ -784,7 +791,7 @@ spring:
         max-document-batch-size: 10000
 ```
 
-### 解决多 Vector Store 冲突的方案
+### 5.4 解决多 Vector Store 冲突的方案
 Spring AI 为每个支持的向量数据库提供了 **自动配置（AutoConfiguration）** 类。在配置了相应的连接信息后，这些自动配置类会尝试创建一个名为 **`vectorStore`** 的 Bean。
 
 如果您的项目中同时引入了多个向量数据库的依赖（例如，同时引入了 Redis 和 PgVector 的依赖），Spring Boot 将尝试执行以下操作：
@@ -800,7 +807,7 @@ Spring AI 为每个支持的向量数据库提供了 **自动配置（AutoConfig
 
 **Bean 定义名称冲突**会直接阻止 Spring 容器完成初始化。
 
-### 解决方案：手动排除自动配置并创建 Bean
+#### 5.4.1 解决方案：手动排除自动配置并创建 Bean
 
 为了避免这种底层的名称冲突，最健壮的方法是阻止 Spring Boot 自动加载所有冲突的 `VectorStore` 自动配置类，然后手动创建您需要的那个 Bean。
 
@@ -850,9 +857,9 @@ public class VectorStoreConfig {
     }
 }
 ```
-### 文本向量化
-下面是使用实例
-
+### 5.5 文本向量化实现
+文本向量化的实现原理是通过深度学习模型（即 Embedding Model）将文本输入映射到高维空间中的一个密集数值向量，确保语义相似的文本在向量空间中彼此靠近。
+**示例代码：**
 ```java
 @RestController
 @RequestMapping("/vector")
@@ -870,7 +877,9 @@ public class VectorController {
 }
 ```
 
-### 向量存储
+### 5.6 向量存储
+为什么需要向量存储？向量存储是为了高效地存储和检索大量的高维文本向量，它是实现 RAG（检索增强生成）机制中语义检索功能的核心基础设施。
+
 如果你是 `pgvector`，需要如下检查。需要检查你创建的 `vector` 类型和 `embedding` 模型所使用的向量维度是否一致。
 ```sql
 --查看是否有 'vector' 拓展
@@ -902,7 +911,7 @@ CREATE TABLE IF NOT EXISTS vector_store
 ALTER TABLE vector_store
 ALTER COLUMN embedding TYPE vector(1024);
 ```
-使用示例
+**示例代码：**
 ```java
 public void add() {
     List<Document> documents = List.of(
@@ -923,7 +932,12 @@ public void add() {
 }
 ```
 
-### 相似度检索
+### 5.7 相似度检索
+**相似度检索**的原理是计算用户查询文本（已向量化）与向量存储中所有文档向量之间的**距离或夹角**（如余弦相似度），以找出向量空间中**距离最近**（即语义最相关）的 $k$ 个文档片段。
+
+**使用示例：**
+
+该示例展示了如何使用 SearchRequest 向配置好的 Redis 和 PgVector 向量存储发起检索请求，并获取最相似的 Top K 文档。
 ```java
 public Map<String, List<Document>> getAll(@RequestParam(name = "text", defaultValue = "AI 技术的核心发展方向是什么？") String text) {
     SearchRequest searchRequest = SearchRequest.builder().query(text).topK(2).build();
@@ -935,14 +949,14 @@ public Map<String, List<Document>> getAll(@RequestParam(name = "text", defaultVa
     return map;
 }
 ```
-## RAG增加检索
+## 六、RAG增加检索
 上面我们已经实现了**向量存储**和**向量检索**的基础，下面我们将核心实现**RAG（Retrieval-Augmented Generation）**，即给大模型外挂一个自定义“知识库”。
 
 RAG的流程是：用户提出问题后，系统先从知识库中检索出**最相关**的内容片段（即**Context**），然后将这些内容和用户的问题一起喂给大模型（LLM），引导大模型基于这些上下文来生成回答。
 
 依赖和配置与之前相同，此处不再赘述。
 
-### 知识库内容示例
+### 6.1 知识库内容示例
 我们将使用以下自定义运维错误码作为我们的知识库：
 `classpath:/knowledge-base/ops.txt`位置的文本内容如下
 ```text
@@ -953,7 +967,7 @@ B1111 支付接口超时
 C2222 Kafka消息解压严重
 ```
 正常情况下，大模型并不知道我们自定义的这些错误码的含义。通过 RAG 机制，我们可以确保大模型在回答相关问题时能够查阅并引用这些专业知识。
-### 知识库加载与向量存储初始化
+### 6.2 知识库加载与向量存储初始化
 这一步骤负责将本地的知识文本（`ops.txt`）读取、分割、并将其嵌入（Embedding）后存入向量数据库（这里是 PostgreSQL 和 Redis），以便后续进行语义检索。
 
 > **核心组件：**
@@ -1013,7 +1027,7 @@ public class InitVectorDatabaseConfig {
     }
 }
 ```
-### 实现 RAG 检索增强
+### 6.3 实现 RAG 检索增强
 我们使用 Spring AI 提供的 `RetrievalAugmentationAdvisor` 来实现 RAG 机制。这个 Advisor 会在发送请求给大模型**之前**自动执行检索，并将检索结果作为上下文（Context）注入到最终的 Prompt 中。
 ```java
 public Flux<String> redisRag(String code) {
@@ -1048,9 +1062,9 @@ public Flux<String> redisRag(String code) {
 
 4. 大模型根据这个增强后的 Prompt，结合 Context 给出准确的回答。
 
-## 工具调用
+## 七、工具调用
 **工具调用**机制允许大语言模型（LLM）在理解用户的意图后，识别并调用外部定义的函数或服务，从而获取实时信息、执行特定操作或访问外部系统。它极大地扩展了 LLM 的能力边界。
-### 为什么需要工具调用？
+### 7.1 为什么需要工具调用？
 大模型的知识通常截止于其训练数据的截止日期，它无法：
 1. **获取实时信息：** 例如，当前时间、天气、实时股价等。
 2. **执行外部操作：** 例如，发送邮件、调用支付接口、查询数据库等。
@@ -1064,7 +1078,7 @@ public Flux<String> redisRag(String code) {
 |**执行与生成**|应用接收到 LLM 的调用指令后，**执行**该工具，将工具的**结果**作为新的上下文返回给 LLM，LLM 再基于结果生成最终回复。|应用执行 `getCurrentTime()` 返回 `2025-12-02T17:28:23.123`，LLM 回复：“现在是 2025 年 12 月 2 日下午 5 点 28 分。”|
 
 
-### 定义工具类
+### 7.2 定义工具类
 在 Spring AI 中，您只需要在 Java 方法上使用` @Tool` 注解，即可将其暴露为 LLM 可以理解的工具。
 ```java
 public class DateTimeTools {
@@ -1079,9 +1093,9 @@ public class DateTimeTools {
     }
 }
 ```
-### 调用工具
+### 7.3 调用工具
 Spring AI 提供了两种主要方式来集成和调用工具：基于低级 `ChatModel` 和基于高级 `ChatClient`。
-#### 基于 ChatModel
+#### 7.3.1 基于 `ChatModel` 实现的工具调用
 这种方式需要手动构造 `ToolCallbacks` 数组，并将其注入到 `ChatOptions` 中，然后传递给 `ChatModel`。
 ```java
 @RequestMapping("/tool")
@@ -1105,7 +1119,7 @@ public class ToolCallingController {
     // ...
 }
 ```
-#### 基于 ChatClient
+#### 7.3.2 基于 `ChatClient` 实现的工具调用
 `ChatClient` 提供了更简洁的流式 API，它在底层自动封装了工具注册和配置的细节。
 ```java
 // ...
@@ -1121,10 +1135,10 @@ public Flux<String> chat2(@RequestParam(name = "question", defaultValue = "你�
             .content(); // 流式获取最终回答内容
 }
 ```
-## MCP
-
-### MCP 服务端
-#### 依赖
+## 八、MCP
+**MCP (Model-Powered Control Plane)** 是一种架构，利用 AI Agent 的推理能力，将**自然语言指令转化为对复杂系统的编排和管理**。**工具调用 (Tool Calling)** 则是实现 MCP 的**底层机制**，它为 LLM 提供了调用外部函数的能力；简单来说，工具调用是 LLM 的“手脚”，而 MCP 是利用这些“手脚”去管理复杂系统的 “大脑”和框架。
+### 8.1 MCP 服务端
+#### 8.1.1依赖
 ```xml
 <dependencies>
     <!--注意事项
@@ -1159,7 +1173,7 @@ public Flux<String> chat2(@RequestParam(name = "question", defaultValue = "你�
     </dependency>
 </dependencies>
 ```
-#### 配置文件
+#### 8.1.2 配置文件
 ```yaml
 spring:
   application:
@@ -1171,17 +1185,16 @@ spring:
         name: mcp-server
         version: 1.0.0
 ```
-#### 工具定义与暴露
+#### 8.1.3 工具定义与暴露
 在模型驱动控制平面（MCP）架构中，**服务端**负责定义并暴露一系列具体的业务功能或操作（即**工具**）。这些工具将被 AI Agent 或 MCP 客户端调用，以执行复杂任务。
 
-#####  编写服务类并暴露工具方法
+##### 8.1.3.1 编写服务类并暴露工具方法
 
 我们通过在服务类方法上使用 Spring AI 的 `@Tool` 注解，将方法标记为可供大模型调用的工具。
 
-##### 示例：城市旅游新闻服务
+##### 8.1.3.2 示例：城市旅游新闻服务
 
 以下是一个模拟的在线旅游新闻服务，它接受城市名称作为参数，并返回该城市的今日旅游新闻摘要。
-
 
 ```java
 /**
@@ -1207,7 +1220,7 @@ public class TourismNewsService {
     }
 }
 ```
-#### 将工具注册到 MCP 框架
+#### 8.1.4 将工具注册到 MCP 框架
 为了让 MCP 客户端（即调用大模型的应用）能够访问和使用这些工具，我们需要通过 Spring AI 的配置机制，将这些服务实例注册为一个**工具回调提供者**（`ToolCallbackProvider`）。
 
 > **核心组件：**
@@ -1240,9 +1253,9 @@ public class McpServerConfig {
 }
 ```
 
-### MCP 客户端
+### 8.2 MCP 客户端
 MCP 客户端是 AI Agent 侧的应用程序，它负责连接到 MCP 服务端，获取工具的定义（JSON Schema），并在需要时发起对远程工具的实际调用。
-#### 客户端依赖
+#### 8.2.1 客户端依赖
 ```xml
   <!-- 2.mcp-clent 依赖 -->
 <dependency>
@@ -1250,7 +1263,7 @@ MCP 客户端是 AI Agent 侧的应用程序，它负责连接到 MCP 服务端�
     <artifactId>spring-ai-starter-mcp-client</artifactId>
 </dependency>
 ```
-#### 客户端配置文件
+#### 8.2.2 客户端配置文件
 ```yaml
 spring:
   application:
@@ -1276,7 +1289,7 @@ spring:
             mcp-server1:
               url: http://localhost:801
 ```
-#### 客户端配置：集成远程工具到 ChatClient
+#### 8.2.3 客户端配置：集成远程工具到 ChatClient
 为了让 `ChatClient` 在每次调用时都知晓并携带可用的工具定义，我们需要将 MCP 客户端获取到的远程工具注入为 `ChatClient` 的默认工具回调。
 ```java
 @Configuration
@@ -1290,7 +1303,7 @@ public class SaaLLMConfig {
 }
 ```
 
-#### 调用MCP服务
+#### 8.2.4 调用MCP服务
 一旦 ChatClient 被配置了 MCP 提供的远程工具，客户端的调用代码就变得极其简洁。开发者无需关心工具在本地还是远程，只需像调用普通 LLM 一样发起请求。
 ```java
 @Resource
@@ -1300,13 +1313,13 @@ public Flux<String> chat(@RequestParam(name = "question", defaultValue = "北京
 }
 ```
 
-### 调用其他的MCP服务(postgres mcp)
+### 8.3 调用其他的MCP服务(postgres mcp)
 除了连接远程 HTTP/SSE 服务外，Spring AI 的 MCP 客户端还支持通过**标准输入/输出（`stdio`）**方式，启动并连接本地进程运行的 MCP 服务（如用于数据库查询的 MCP）。
 这将赋予大模型直接**查询本地数据库结构和数据**的能力，无需编写传统的 SQL 代码。
 
 依赖用上面mcp 客户端依赖
 
-#### 准备服务 JSON 文件 (classpath:/mcp.json)
+#### 8.3.1 准备服务 JSON 文件 (classpath:/mcp.json)
 
 我们使用一个 JSON 文件来定义需要通过本地进程启动和管理的 MCP 服务。这里我们配置一个名为 `postgres` 的服务。
 
@@ -1331,7 +1344,7 @@ public Flux<String> chat(@RequestParam(name = "question", defaultValue = "北京
   }
 }
 ```
-#### 配置文件
+#### 8.3.2 配置文件
 ```yaml
 spring:
   application:
@@ -1353,7 +1366,7 @@ spring:
         enabled: true
         root-change-notification: true
 ```
-#### 注册到 ChatClient
+#### 8.3.3 注册到 ChatClient
 与集成远程 HTTP/SSE 服务一样，我们需要将 MCP 客户端获取到的所有工具（包括 PostgreSQL 查询工具）注册给 `ChatClient`。
 ```java
 @Configuration
@@ -1367,7 +1380,7 @@ public class SaaLLMConfig {
     }
 }
 ```
-#### 调用 MCP 服务（数据库查询）
+#### 8.3.4 调用 MCP 服务（数据库查询）
 一旦配置完成，大模型就获得了查询数据库的能力。您可以向它提出关于数据库结构的自然语言问题，它将通过调用 PostgreSQL MCP 工具来获取数据并生成回答。
 ```java
 public Flux<String> chat(String question) {
