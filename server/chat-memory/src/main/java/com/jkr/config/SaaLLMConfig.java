@@ -7,6 +7,7 @@ import com.alibaba.cloud.ai.memory.redis.RedisChatMemoryRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -54,10 +55,17 @@ public class SaaLLMConfig {
     }
 
     @Bean(name = "qwenChatClient")
-    public ChatClient qwenChatClient(@Qualifier("qwen") ChatModel qwen) {
+    public ChatClient qwenChatClient(@Qualifier("qwen") ChatModel qwen,
+                                     JdbcChatMemoryRepository jdbcChatMemoryRepository) {
+        MessageWindowChatMemory windowChatMemory = MessageWindowChatMemory
+                .builder()
+                .chatMemoryRepository(jdbcChatMemoryRepository)
+                .maxMessages(100)
+                .build();
         return ChatClient
                 .builder(qwen)
                 .defaultOptions(ChatOptions.builder().model(QWEN_MODEL).build())
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(windowChatMemory).build())
                 .build();
     }
 }

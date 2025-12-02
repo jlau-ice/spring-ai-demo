@@ -6,6 +6,11 @@ server:
       charset: UTF-8
       force: true
 spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
   application:
     name: chat-memory
   data:
@@ -23,6 +28,11 @@ spring:
       chat:
         options:
           model: "qwen-plus-2025-09-11"
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
 #    ollama:
 #      base-url: "http://192.168.187.166:11434"
 #      chat:

@@ -19,7 +19,7 @@ public class ChatHelloController {
     private ChatModel chatModel;
 
     /**
-     * <a href="http://127.0.0.1:8001/cha/block">测试</a>
+     * <a href="http://127.0.0.1:8001/chat/block">测试</a>
      * 通用调用
      * @param question 询问信息
      * @return String
@@ -30,7 +30,7 @@ public class ChatHelloController {
     }
 
     /**
-     * <a href="http://127.0.0.1:8001/cha/stream">测试</a>
+     * <a href="http://127.0.0.1:8001/chat/stream">测试</a>
      * 流式返回调用
      * @param question 询问信息
      * @return Flux<String>

@@ -31,7 +31,7 @@ public class ChatMemoryController {
      * @return Flux<String>
      */
     @GetMapping("/chat")
-    public Flux<String> chat(@RequestParam(name = "question", defaultValue = "1+1等于几") String question,
+    public Flux<String> redisMemory(@RequestParam(name = "question", defaultValue = "1+1等于几") String question,
                              String userId,
                              String conversationId) {
         return deepseekChatClient
@@ -44,14 +44,18 @@ public class ChatMemoryController {
 
     /**
      * <a href="http://localhost:8008/memory/chat2?question=%221+1%E7%AD%89%E4%BA%8E%E5%87%A0%22&userId=1&conversationId=1">测试</a>
-     * 无记忆模式
+     * postgresql 带记忆模式
      *
      * @param question question
      * @return Flux<String>
      */
     @GetMapping("/chat2")
-    public Flux<String> chat(@RequestParam(name = "question", defaultValue = "1+1等于几") String question) {
-        return qwenChatClient.prompt(question).stream().content();
+    public Flux<String> postgresqlMemory(@RequestParam(name = "question", defaultValue = "1+1等于几") String question,
+                              String userId,
+                              String conversationId) {
+        return qwenChatClient.prompt(question).advisors(
+                advisorSpec -> advisorSpec.param(CONVERSATION_ID, userId + "-" + conversationId))
+        .stream().content();
     }
 
 }
