@@ -60,14 +60,8 @@ const handleRegister = async () => {
   try {
     const isValid = await formRef.value.validate()
     if (isValid) return
-    UserControllerService.userRegisterUsingPost(form).then((res) => {
-      if (res.code === 200) {
-        message.success('注册成功')
-        router.push({ path: '/login' })
-      } else {
-        message.error(res.message)
-      }
-    })
+    message.success('注册成功')
+    await router.push({ path: '/login' })
   } catch (err) {
     console.log('表单校验失败:', err)
   }

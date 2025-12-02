@@ -17,12 +17,6 @@
     </template>
   </a-result>
 </template>
-<script>
+<script lang="ts" setup>
 import { IconFaceSmileFill } from '@arco-design/web-vue/es/icon'
-
-export default {
-  components: {
-    IconFaceSmileFill,
-  },
-}
 </script>

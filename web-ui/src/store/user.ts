@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { type LoginUserVO, UserControllerService } from '@/api'
+import { type LoginUserVO } from '@/api'
 import { ACCESS_ENUM } from '@/access/accessEnum'
 import router from '@/router'
 
@@ -10,30 +10,15 @@ export const useUserStore = defineStore('user', () => {
     userRole: ACCESS_ENUM.NO_LOGIN,
   })
   async function fetchLoginUser() {
-    try {
-      const res = await UserControllerService.getLoginUserUsingGet()
-      if (res.code === 200) {
-        loginUser.value = res.data || {}
-      } else {
-        loginUser.value = {
-          userName: '未登录',
-          userRole: ACCESS_ENUM.NO_LOGIN,
-        }
-      }
-    } catch (error) {
-      loginUser.value = {
-        userName: '未登录',
-        userRole: ACCESS_ENUM.NO_LOGIN,
-      }
+    loginUser.value = {
+      userName: 'admin',
+      userRole: ACCESS_ENUM.USER,
     }
   }
   async function fetchLogoutUser() {
-    const res = await UserControllerService.userLogoutUsingPost()
-    if (res.code === 200) {
-      loginUser.value = {
-        userName: '未登录',
-        userRole: ACCESS_ENUM.NO_LOGIN,
-      }
+    loginUser.value = {
+      userName: '未登录',
+      userRole: ACCESS_ENUM.NO_LOGIN,
     }
     await router.push('/login')
   }

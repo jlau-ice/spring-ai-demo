@@ -55,14 +55,9 @@ const handleLogin = async () => {
   try {
     const isValid = await formRef.value.validate()
     if (isValid) return
-    const res = await UserControllerService.userLoginUsingPost(form)
-    if (res.code === 200) {
-      Message.success('登录成功')
-      await userStore.fetchLoginUser()
-      await router.push({ path: '/home' })
-    } else {
-      Message.error(res.message)
-    }
+    Message.success('登录成功')
+    await userStore.fetchLoginUser()
+    await router.push({ path: '/home' })
   } catch (err) {
     console.log('表单校验失败:', err)
   }
