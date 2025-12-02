@@ -24,10 +24,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <!--spring-ai-alibaba dashscope-->
+        <!--
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
         </dependency>
+        -->
         <!--ollama-->
         <dependency>
             <groupId>org.springframework.ai</groupId>
