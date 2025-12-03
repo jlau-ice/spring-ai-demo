@@ -9,9 +9,9 @@
 > 
 >阿里百炼平台api-key (避免明文使用，建议加入到环境变量)
 > 
->向量数据库 redis-stack (拥有pgsql所有功能 拓展了向量存储功能)
+>向量数据库 redis-stack (拥有redis所有功能 拓展了向量存储功能)
 > 
->向量数据库 pgvector (拥有redis所有功能 拓展了向量存储功能)
+>向量数据库 pgvector (拥有pgsql所有功能 拓展了向量存储功能)
 
 
 - pgvector docker 快速安装
@@ -807,7 +807,7 @@ Spring AI 为每个支持的向量数据库提供了 **自动配置（AutoConfig
 
 **Bean 定义名称冲突**会直接阻止 Spring 容器完成初始化。
 
-#### 5.4.1 解决方案：手动排除自动配置并创建 Bean
+ **解决方案：手动排除自动配置并创建 Bean**
 
 为了避免这种底层的名称冲突，最健壮的方法是阻止 Spring Boot 自动加载所有冲突的 `VectorStore` 自动配置类，然后手动创建您需要的那个 Bean。
 
@@ -1030,6 +1030,12 @@ public class InitVectorDatabaseConfig {
 ### 6.3 实现 RAG 检索增强
 我们使用 Spring AI 提供的 `RetrievalAugmentationAdvisor` 来实现 RAG 机制。这个 Advisor 会在发送请求给大模型**之前**自动执行检索，并将检索结果作为上下文（Context）注入到最终的 Prompt 中。
 ```java
+@Resource
+@Qualifier("pgVectorStore")
+private VectorStore pgVectorStore;
+@Resource
+@Qualifier("redisVectorStore")
+private VectorStore redisVectorStore;
 public Flux<String> redisRag(String code) {
     // 1. 定义系统角色和指令
     String systemInfo = """
@@ -1040,6 +1046,8 @@ public Flux<String> redisRag(String code) {
     RetrievalAugmentationAdvisor advisor = RetrievalAugmentationAdvisor.builder()
             // 绑定知识库检索器：这里指定使用 RedisVectorStore 进行检索
             .documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(redisVectorStore).build())
+            // 绑定知识库检索器：这里指定使用 PostgreSQLVectorStore 进行检索
+            //.documentRetriever(VectorStoreDocumentRetriever.builder().vectorStore(pgVectorStore).build())
             .build();
     // 3. 构建并发送请求
     return chatClient
