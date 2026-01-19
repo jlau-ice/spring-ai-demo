@@ -34,6 +34,7 @@
         <module>mcp-server</module>
         <module>mcp-client</module>
         <module>mcp-call</module>
+        <module>ocr</module>
     </modules>
 
     <properties>

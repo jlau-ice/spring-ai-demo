@@ -1,0 +1,37 @@
+server:
+  port: 8017
+  servlet:
+    encoding:
+      enabled: true
+      charset: UTF-8
+      force: true
+spring:
+  application:
+    name: mcp-client
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 1
+      connect-timeout: 3
+      timeout: 3
+  ai:
+    dashscope:
+      api-key: ${DASH_SCOPE_API_KEY}
+      base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+      chat:
+        options:
+          model: "qwen-plus-2025-09-11"
+    mcp:
+      client:
+        type: async
+        name: mcp-client
+        version: 1.0.0
+        request-timeout: 60s
+        toolcallback:
+          enabled: true
+        sse:
+          connections:
+            mcp-server1:
+              url: http://localhost:8014
